@@ -2,18 +2,23 @@
 
 # WS client example
 
+
 import asyncio
 import websockets
+import json
 
 
-async def hello():
+async def pingApi():
     uri = "wss://ws.blockchain.info/inv"
     async with websockets.connect(uri) as websocket:
-        # name = input("What's your name? ")
-        msg = '{"op":"ping"}'
+        msg = '{"op":"ping_block"}'
         await websocket.send(msg)
 
-        greeting = await websocket.recv()
-        print(f"< {greeting}")
+        result = await websocket.recv()
+        # print(f"< {result}")
+        return result
 
-asyncio.get_event_loop().run_until_complete(hello())
+while True:
+    returnMsg = asyncio.run(pingApi())
+    parsedMsg = json.loads(returnMsg)
+    print(parsedMsg["x"])

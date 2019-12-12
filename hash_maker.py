@@ -21,10 +21,10 @@ def hasher(hex):
     return revEndian(hashStr(hash2))
 
 
-uri = 'https://blockchain.info/rawtx/'
-tx_id = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'
-response = requests.get(uri + tx_id, params={'format': 'hex'}, )
-print(response.text)
-print(hasher('0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c'))
-
-# https://bitcoin.stackexchange.com/questions/2177/how-to-calculate-a-hash-of-a-tx
+# uri = 'https://blockchain.info/rawtx/'
+# tx_id = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'
+# response = requests.get(uri + tx_id, params={'format': 'hex'}, )
+# print(response.text)
+# print(hasher('0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c'))
+#
+# # https://bitcoin.stackexchange.com/questions/2177/how-to-calculate-a-hash-of-a-tx

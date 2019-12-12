@@ -11,6 +11,8 @@ def main(tx_hash):
     # get block height from transaction data
     uri_tx = "https://blockchain.info/rawtx/"
     response_tx = requests.get(uri_tx + tx_hash, params={'format': 'json'}, )
+    if response_tx.status_code != 200:
+        return -1
     res = response_tx.json()
     url = 'https://blockchain.info/block-height/'
     block_height = str(res['block_height'])
@@ -157,9 +159,42 @@ def get_transaction_data(block, index):
     return trans_data
 
 
+def find_transaction(block):
+    # loop through transactions, hash it, find the one that matches the given hash
+    for j in range(int('0x' + block["num_trans"], 0)):
+        trans_data_str = get_transaction_data(block, j)
+        calculated_hash = hash_maker.hasher(trans_data_str)
+        if tx_hash == calculated_hash:
+            return j
+
+    return -1
+
+
+# print all the data from the specified transaction
+def print_transaction_data(block, index):
+    print(hex_to_uint32(block["txs"][index]["trans_version"]))
+
+
+# Converts a big-endian hex string to a unsigned 32 bit integer
+def hex_to_uint32(string):
+    return int('0x' + string, 0)
+
+
 if __name__ == "__main__":
     tx_hash = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'
+    # tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'
     hex_str = main(tx_hash)
+
+    # if api returned something other than OK
+    if hex_str == -1:
+        print("Could not find transaction with the given hash")
+        exit(0)
+
     block_data = parse_block(hex_str)
-    trans_data_str = get_transaction_data(block_data, 1)
-    print(hash_maker.hasher(trans_data_str))
+    tx_index = find_transaction(block_data)
+    if tx_index == -1:
+        print("Couldn't find tx")
+
+    print("Found Tx at index: %d" % tx_index)
+    print_transaction_data(block_data, tx_index)
+

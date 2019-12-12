@@ -2,6 +2,8 @@ import requests
 import json
 import hash_maker
 
+SATOSHI_TO_BTC = 0.00000001
+
 
 def main(tx_hash):
     # first tx_hash = f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16
@@ -62,10 +64,14 @@ def parse_block(string):
     # transactions
     start = end
     end += 2
+    tmp = hex_to_uint32(string[start:end], 'little_endian')
+    if tmp == 253:
+        start = end
+        end += 4
     block["num_trans"] = string[start:end]
 
     # TODO: put the rule checking in here. Everything after this will change***
-    x = int('0x' + block["num_trans"], 0)
+    x = hex_to_uint32(block["num_trans"], 'little_endian')
     block["txs"] = []
     for i in range(x):
         block["txs"].append({})
@@ -76,9 +82,15 @@ def parse_block(string):
         # transaction input data
         start = end
         end += 2
+        # TODO: == 253 rule checking in, add more
+        block["txs"][i]["input_identifier"] = ''
+        tmp = hex_to_uint32(string[start:end], 'little_endian')
+        if tmp == 253:
+            block["txs"][i]["input_identifier"] = string[start:end]
+            start = end
+            end += 4
         block["txs"][i]["num_inputs"] = string[start:end]
-        # TODO: put the rule checking in here. Everything after this will change again***
-        num_inputs = int('0x' + block["txs"][i]["num_inputs"], 0)
+        num_inputs = hex_to_uint32(block["txs"][i]["num_inputs"], 'little_endian')
         block["txs"][i]["tx_inputs"] = []
         for k in range(num_inputs):
             block["txs"][i]["tx_inputs"].append({})
@@ -140,8 +152,9 @@ def get_transaction_data(block, index):
     trans_data += block["txs"][index]["trans_version"]
 
     # get all inputs
+    trans_data += block["txs"][index]["input_identifier"]
     trans_data += block["txs"][index]["num_inputs"]
-    for i in range(int('0x' + block["txs"][index]["num_inputs"], 0)):
+    for i in range(hex_to_uint32(block["txs"][index]["num_inputs"], 'little_endian')):
         trans_data += block["txs"][index]["tx_inputs"][i]["pre_tx_hash"]
         trans_data += block["txs"][index]["tx_inputs"][i]["pre_tx_out_index"]
         trans_data += block["txs"][index]["tx_inputs"][i]["input_script_length"]
@@ -150,7 +163,7 @@ def get_transaction_data(block, index):
 
     # get all outputs
     trans_data += block["txs"][index]["num_outputs"]
-    for i in range(int('0x' + block["txs"][index]["num_outputs"], 0)):
+    for i in range(hex_to_uint32(block["txs"][index]["num_outputs"], 'little_endian')):
         trans_data += block["txs"][index]["tx_outputs"][i]["value"]
         trans_data += block["txs"][index]["tx_outputs"][i]["output_script_length"]
         trans_data += block["txs"][index]["tx_outputs"][i]["output_script"]
@@ -162,7 +175,7 @@ def get_transaction_data(block, index):
 
 # loop through transactions, hash it, find the one that matches the given hash
 def find_transaction(block):
-    for j in range(int('0x' + block["num_trans"], 0)):
+    for j in range(hex_to_uint32(block["num_trans"], 'little_endian')):
         trans_data_str = get_transaction_data(block, j)
         calculated_hash = hash_maker.hasher(trans_data_str)
         if tx_hash == calculated_hash:
@@ -192,7 +205,7 @@ def print_transaction_data(block, index, tx_hash):
     print("Number of outputs: %d" % hex_to_uint32(block["txs"][index]["num_outputs"], 'little_endian'))
     for i in range(hex_to_uint32(block["txs"][index]["num_outputs"], 'little_endian')):
         print("Transaction Output %d" % i)
-        print("\tValue: %d" % hex_to_uint32(block["txs"][index]["tx_outputs"][i]["value"], 'little_endian'))
+        print("\tValue: %fBTC" % float(hex_to_uint32(block["txs"][index]["tx_outputs"][i]["value"], 'little_endian') * SATOSHI_TO_BTC))
         print("\tOutput Script Length: %d" % hex_to_uint32(block["txs"][index]["tx_outputs"][i]["output_script_length"], 'little_endian'))
         print("\tOutput Script: %s" % block["txs"][index]["tx_outputs"][i]["output_script"])
 
@@ -208,9 +221,13 @@ def hex_to_uint32(string, endianness='big-endian'):
 
 
 if __name__ == "__main__":
-    # tx_hash = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'
-    # tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'
-    tx_hash = 'fe28050b93faea61fa88c4c630f0e1f0a1c24d0082dd0e10d369e13212128f33'
+    # tx_hash = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'  # first TX, blk height 170
+    # tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'  # first TX, blk height 170
+    # tx_hash = 'fe28050b93faea61fa88c4c630f0e1f0a1c24d0082dd0e10d369e13212128f33'  # block height 1,000
+    # tx_hash = '6359f0868171b1d194cbee1af2f16ea598ae8fad666d9b012c8ed2b79a236ec4'  # block height 100,000
+    tx_hash = 'b5f6e3b217fa7f6d58081b5d2a9a6607eebd889ed2c470191b2a45e0dcb98eb0'  # block height 150,000
+    # tx_hash = 'ee475443f1fbfff84ffba43ba092a70d291df233bd1428f3d09f7bd1a6054a1f'  # blk height 200,000, 388 TX's
+    # tx_hash = 'bcb887acb2c01b6c5c8b92c22a368135d207f07a26eff170fe730b1cd40d2547'  # blk height 200,000, TX 440 inputs
     hex_str = main(tx_hash)
 
     # if api returned something other than OK
@@ -222,7 +239,8 @@ if __name__ == "__main__":
     tx_index = find_transaction(block_data)
     if tx_index == -1:
         print("Couldn't find tx")
+        exit(0)
 
-    print("Found Tx at index: %d" % tx_index)
+    print("Found TX at index: %d" % tx_index)
     print_transaction_data(block_data, tx_index, tx_hash)
 

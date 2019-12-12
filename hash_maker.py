@@ -1,6 +1,5 @@
 import codecs
 import hashlib
-import requests
 
 
 # switch the endianness of a given string

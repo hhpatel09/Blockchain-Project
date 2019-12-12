@@ -2,30 +2,26 @@ import BlockchainApi
 import time
 import requests
 
+import json
+
 
 def main():
-    # start = time.time()
-    # uri = 'https://blockchain.info/latestblock'
-    # hash = '00000000000000000013db796853a933a792181f84d31dc0012a744b1e56879a'
+    # tx_hash = f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16
+    url = 'https://blockchain.info/block-height/170?format=json'
+    response = requests.get(url)
+    y = json.loads(response.text)
+    block_hash = y["blocks"][0]['hash']
+    print("hash: " + block_hash)
+    block_hash = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'
+    url = 'https://blockchain.info/rawblock/' + block_hash
+    response = requests.get(url, params={'format': 'hex'}, )
+    print(response.text)
 
-    # uri = "https://blockchain.info/rawtx/"
-    # block_hash = "8a6c6c5d27d18cc525307711f3463f3d97957a356ed39e641316f6aa890f342e"
-    # response = requests.get(uri + block_hash, params={'format': "hex"}, )
-    # print(response.text)
-    print(int("b'4869206d79206e616d65206973206861727368", 10))
 
-    # blockchain_api = BlockchainApi.BlockchainApi(uri)
-    #
-    # while True:
-    #     end = time.time()
-    #     if (end - start) > 30:
-    #         latest_block = blockchain_api.get_latest_block()
-    #         print(f'hash: {latest_block["hash"]}')
-    #         print(f'time: {latest_block["time"]}')
-    #         print(f'height: {latest_block["height"]}')
-    #         print('')
-    #         start = time.time()
-    #
+def parse():
+    # hex: 0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c0101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4d04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73ffffffff0100f2052a01000000434104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac00000000
+    for i in range(8):
+        
 
 
 if __name__ == "__main__":

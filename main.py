@@ -64,14 +64,14 @@ def parse_block(string):
     # transactions
     start = end
     end += 2
-    tmp = hex_to_uint32(string[start:end], 'little_endian')
+    tmp = hex_to_uint32(string[start:end])
     if tmp == 253:
         start = end
         end += 4
     block["num_trans"] = string[start:end]
 
     # TODO: put the rule checking in here. Everything after this will change***
-    x = hex_to_uint32(block["num_trans"], 'little_endian')
+    x = hex_to_uint32(block["num_trans"])
     block["txs"] = []
     for i in range(x):
         block["txs"].append({})
@@ -84,13 +84,13 @@ def parse_block(string):
         end += 2
         # TODO: == 253 rule checking in, add more
         block["txs"][i]["input_identifier"] = ''
-        tmp = hex_to_uint32(string[start:end], 'little_endian')
+        tmp = hex_to_uint32(string[start:end])
         if tmp == 253:
             block["txs"][i]["input_identifier"] = string[start:end]
             start = end
             end += 4
         block["txs"][i]["num_inputs"] = string[start:end]
-        num_inputs = hex_to_uint32(block["txs"][i]["num_inputs"], 'little_endian')
+        num_inputs = hex_to_uint32(block["txs"][i]["num_inputs"])
         block["txs"][i]["tx_inputs"] = []
         for k in range(num_inputs):
             block["txs"][i]["tx_inputs"].append({})
@@ -154,7 +154,7 @@ def get_transaction_data(block, index):
     # get all inputs
     trans_data += block["txs"][index]["input_identifier"]
     trans_data += block["txs"][index]["num_inputs"]
-    for i in range(hex_to_uint32(block["txs"][index]["num_inputs"], 'little_endian')):
+    for i in range(hex_to_uint32(block["txs"][index]["num_inputs"])):
         trans_data += block["txs"][index]["tx_inputs"][i]["pre_tx_hash"]
         trans_data += block["txs"][index]["tx_inputs"][i]["pre_tx_out_index"]
         trans_data += block["txs"][index]["tx_inputs"][i]["input_script_length"]
@@ -163,7 +163,7 @@ def get_transaction_data(block, index):
 
     # get all outputs
     trans_data += block["txs"][index]["num_outputs"]
-    for i in range(hex_to_uint32(block["txs"][index]["num_outputs"], 'little_endian')):
+    for i in range(hex_to_uint32(block["txs"][index]["num_outputs"])):
         trans_data += block["txs"][index]["tx_outputs"][i]["value"]
         trans_data += block["txs"][index]["tx_outputs"][i]["output_script_length"]
         trans_data += block["txs"][index]["tx_outputs"][i]["output_script"]
@@ -175,7 +175,7 @@ def get_transaction_data(block, index):
 
 # loop through transactions, hash it, find the one that matches the given hash
 def find_transaction(block):
-    for j in range(hex_to_uint32(block["num_trans"], 'little_endian')):
+    for j in range(hex_to_uint32(block["num_trans"])):
         trans_data_str = get_transaction_data(block, j)
         calculated_hash = hash_maker.hasher(trans_data_str)
         if tx_hash == calculated_hash:
@@ -189,35 +189,35 @@ def print_transaction_data(block, index, tx_hash):
     print("------------- TRANSACTION DATA ----------------")
     print("Transaction number: %d" % index)
     print("Transaction Hash: %s" % tx_hash)
-    print("Version: %d" % hex_to_uint32(block["txs"][index]["trans_version"], 'little_endian'))
+    print("Version: %d" % hex_to_uint32(block["txs"][index]["trans_version"]))
 
     # Display TX inputs
-    print("Number of inputs: %d" % hex_to_uint32(block["txs"][index]["num_inputs"], 'little_endian'))
-    for i in range(hex_to_uint32(block["txs"][index]["num_inputs"], 'little_endian')):
+    print("Number of inputs: %d" % hex_to_uint32(block["txs"][index]["num_inputs"]))
+    for i in range(hex_to_uint32(block["txs"][index]["num_inputs"])):
         print("Transaction Input %d" % i)
-        print("\tPrevious TX Hash: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["pre_tx_hash"], 'little_endian'))
-        print("\tPrevious TX Output Index: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["pre_tx_out_index"], 'little_endian'))
-        print("\tInput Script Length: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["input_script_length"], 'little_endian'))
+        print("\tPrevious TX Hash: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["pre_tx_hash"]))
+        print("\tPrevious TX Output Index: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["pre_tx_out_index"]))
+        print("\tInput Script Length: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["input_script_length"]))
         print("\tInput Script: %s" % block["txs"][index]["tx_inputs"][i]["input_script"])
-        print("\tSequence: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["sequence"], 'little_endian'))
+        print("\tSequence: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["sequence"]))
 
     # Display TX Outputs
-    print("Number of outputs: %d" % hex_to_uint32(block["txs"][index]["num_outputs"], 'little_endian'))
-    for i in range(hex_to_uint32(block["txs"][index]["num_outputs"], 'little_endian')):
+    print("Number of outputs: %d" % hex_to_uint32(block["txs"][index]["num_outputs"]))
+    for i in range(hex_to_uint32(block["txs"][index]["num_outputs"])):
         print("Transaction Output %d" % i)
-        print("\tValue: %fBTC" % float(hex_to_uint32(block["txs"][index]["tx_outputs"][i]["value"], 'little_endian') * SATOSHI_TO_BTC))
-        print("\tOutput Script Length: %d" % hex_to_uint32(block["txs"][index]["tx_outputs"][i]["output_script_length"], 'little_endian'))
+        print("\tValue: %fBTC" % float(hex_to_uint32(block["txs"][index]["tx_outputs"][i]["value"]) * SATOSHI_TO_BTC))
+        print("\tOutput Script Length: %d" % hex_to_uint32(block["txs"][index]["tx_outputs"][i]["output_script_length"]))
         print("\tOutput Script: %s" % block["txs"][index]["tx_outputs"][i]["output_script"])
 
-    print("Lock Time: %d" % hex_to_uint32(block["txs"][index]["lock_time"], 'little_endian'))
+    print("Lock Time: %d" % hex_to_uint32(block["txs"][index]["lock_time"]))
 
 
 # Converts a hex string to a unsigned 32 bit integer based on its endianness
-def hex_to_uint32(string, endianness='big-endian'):
+def hex_to_uint32(string, endianness='little-endian'):
     if endianness == 'big-endian':
         return int('0x' + string, 0)
-    elif endianness == 'little_endian':
-        return hex_to_uint32(hash_maker.revEndian(string))
+    elif endianness == 'little-endian':
+        return hex_to_uint32(hash_maker.revEndian(string), 'big-endian')
 
 
 if __name__ == "__main__":
@@ -225,9 +225,9 @@ if __name__ == "__main__":
     # tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'  # first TX, blk height 170
     # tx_hash = 'fe28050b93faea61fa88c4c630f0e1f0a1c24d0082dd0e10d369e13212128f33'  # block height 1,000
     # tx_hash = '6359f0868171b1d194cbee1af2f16ea598ae8fad666d9b012c8ed2b79a236ec4'  # block height 100,000
-    tx_hash = 'b5f6e3b217fa7f6d58081b5d2a9a6607eebd889ed2c470191b2a45e0dcb98eb0'  # block height 150,000
+    # tx_hash = 'b5f6e3b217fa7f6d58081b5d2a9a6607eebd889ed2c470191b2a45e0dcb98eb0'  # block height 150,000
     # tx_hash = 'ee475443f1fbfff84ffba43ba092a70d291df233bd1428f3d09f7bd1a6054a1f'  # blk height 200,000, 388 TX's
-    # tx_hash = 'bcb887acb2c01b6c5c8b92c22a368135d207f07a26eff170fe730b1cd40d2547'  # blk height 200,000, TX 440 inputs
+    tx_hash = 'bcb887acb2c01b6c5c8b92c22a368135d207f07a26eff170fe730b1cd40d2547'  # blk height 200,000, TX 440 inputs
     hex_str = main(tx_hash)
 
     # if api returned something other than OK

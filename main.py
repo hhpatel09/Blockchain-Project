@@ -16,12 +16,13 @@ def main(tx_hash):
     res = response_tx.json()
     url = 'https://blockchain.info/block-height/'
     block_height = str(res['block_height'])
+    print("Block Height: %s" % block_height)
 
     # get block from block height
     response = requests.get(url + block_height, params={'format': 'json'}, )
     y = json.loads(response.text)
     block_hash = y["blocks"][0]['hash']
-    print("hash: " + block_hash)
+    print("block hash: " + block_hash)
 
     # get block raw data from block hash
     url = 'https://blockchain.info/rawblock/' + block_hash
@@ -133,7 +134,7 @@ def parse_block(string):
     return block
 
 
-# get first transaction data
+# get transaction data at a certain index
 def get_transaction_data(block, index):
     trans_data = ''
     trans_data += block["txs"][index]["trans_version"]
@@ -159,8 +160,8 @@ def get_transaction_data(block, index):
     return trans_data
 
 
+# loop through transactions, hash it, find the one that matches the given hash
 def find_transaction(block):
-    # loop through transactions, hash it, find the one that matches the given hash
     for j in range(int('0x' + block["num_trans"], 0)):
         trans_data_str = get_transaction_data(block, j)
         calculated_hash = hash_maker.hasher(trans_data_str)
@@ -171,18 +172,45 @@ def find_transaction(block):
 
 
 # print all the data from the specified transaction
-def print_transaction_data(block, index):
-    print(hex_to_uint32(block["txs"][index]["trans_version"]))
+def print_transaction_data(block, index, tx_hash):
+    print("------------- TRANSACTION DATA ----------------")
+    print("Transaction number: %d" % index)
+    print("Transaction Hash: %s" % tx_hash)
+    print("Version: %d" % hex_to_uint32(block["txs"][index]["trans_version"], 'little_endian'))
+
+    # Display TX inputs
+    print("Number of inputs: %d" % hex_to_uint32(block["txs"][index]["num_inputs"], 'little_endian'))
+    for i in range(hex_to_uint32(block["txs"][index]["num_inputs"], 'little_endian')):
+        print("Transaction Input %d" % i)
+        print("\tPrevious TX Hash: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["pre_tx_hash"], 'little_endian'))
+        print("\tPrevious TX Output Index: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["pre_tx_out_index"], 'little_endian'))
+        print("\tInput Script Length: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["input_script_length"], 'little_endian'))
+        print("\tInput Script: %s" % block["txs"][index]["tx_inputs"][i]["input_script"])
+        print("\tSequence: %d" % hex_to_uint32(block["txs"][index]["tx_inputs"][i]["sequence"], 'little_endian'))
+
+    # Display TX Outputs
+    print("Number of outputs: %d" % hex_to_uint32(block["txs"][index]["num_outputs"], 'little_endian'))
+    for i in range(hex_to_uint32(block["txs"][index]["num_outputs"], 'little_endian')):
+        print("Transaction Output %d" % i)
+        print("\tValue: %d" % hex_to_uint32(block["txs"][index]["tx_outputs"][i]["value"], 'little_endian'))
+        print("\tOutput Script Length: %d" % hex_to_uint32(block["txs"][index]["tx_outputs"][i]["output_script_length"], 'little_endian'))
+        print("\tOutput Script: %s" % block["txs"][index]["tx_outputs"][i]["output_script"])
+
+    print("Lock Time: %d" % hex_to_uint32(block["txs"][index]["lock_time"], 'little_endian'))
 
 
-# Converts a big-endian hex string to a unsigned 32 bit integer
-def hex_to_uint32(string):
-    return int('0x' + string, 0)
+# Converts a hex string to a unsigned 32 bit integer based on its endianness
+def hex_to_uint32(string, endianness='big-endian'):
+    if endianness == 'big-endian':
+        return int('0x' + string, 0)
+    elif endianness == 'little_endian':
+        return hex_to_uint32(hash_maker.revEndian(string))
 
 
 if __name__ == "__main__":
-    tx_hash = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'
+    # tx_hash = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'
     # tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'
+    tx_hash = 'fe28050b93faea61fa88c4c630f0e1f0a1c24d0082dd0e10d369e13212128f33'
     hex_str = main(tx_hash)
 
     # if api returned something other than OK
@@ -196,5 +224,5 @@ if __name__ == "__main__":
         print("Couldn't find tx")
 
     print("Found Tx at index: %d" % tx_index)
-    print_transaction_data(block_data, tx_index)
+    print_transaction_data(block_data, tx_index, tx_hash)
 

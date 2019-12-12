@@ -6,7 +6,7 @@ String : 01000000 00000000000000000000000000000000000000000000000000000000000000
 
 ## Block header (little endian)
 
-version(4):         01000000
+version(4):         0100 0000
 pre-block hash(32): 0000000000000000000000000000000000000000000000000000000000000000
 merkle root(32):    3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a
 time(4):            29ab5f49
@@ -16,7 +16,7 @@ nonce(4):           1dac 2b7c
 ## Transactions (little endian)
 
 number of transactions(rules): 01
-version(4): 01000000
+version(4): 0100 0000
 
 ### Transaction Input (little endian)
 

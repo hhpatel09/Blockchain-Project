@@ -79,7 +79,7 @@ def parse_block(string):
         end += 8
         block["txs"][i]["trans_version"] = string[start:end]
 
-        # transaction input data
+        # transaction inputs
         start = end
         end += 2
         # TODO: == 253 rule checking in, add more
@@ -106,7 +106,7 @@ def parse_block(string):
             start = end
             end += 2
             block["txs"][i]["tx_inputs"][k]["input_script_length"] = string[start:end]
-            input_script_length = int('0x' + string[start:end], 0)
+            input_script_length = hex_to_uint32(string[start:end])
 
             start = end
             end += input_script_length * 2
@@ -119,9 +119,15 @@ def parse_block(string):
         # transaction outputs
         start = end
         end += 2
+        # TODO: == 253 rule checking in, add more
+        block["txs"][i]["output_identifier"] = ''
+        tmp = hex_to_uint32(string[start:end])
+        if tmp == 253:
+            block["txs"][i]["output_identifier"] = string[start:end]
+            start = end
+            end += 4
         block["txs"][i]["num_outputs"] = string[start:end]
-        # TODO: put the rule checking in here. Everything after this will change again***
-        num_outputs = int('0x' + block["txs"][i]["num_outputs"], 0)
+        num_outputs = hex_to_uint32(block["txs"][i]["num_outputs"])
         block["txs"][i]["tx_outputs"] = []
         for k in range(num_outputs):
             block["txs"][i]["tx_outputs"].append({})
@@ -133,7 +139,7 @@ def parse_block(string):
             start = end
             end += 2
             block["txs"][i]["tx_outputs"][k]["output_script_length"] = string[start:end]
-            output_script_length = int('0x' + string[start:end], 0) * 2
+            output_script_length = hex_to_uint32(string[start:end]) * 2
 
             start = end
             end += output_script_length

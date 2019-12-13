@@ -226,12 +226,13 @@ def hex_to_uint32(string, endianness='little-endian'):
 
 def main():
     # tx_hash = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'  # first TX, blk height 170
-    tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'  # first TX, blk height 170
+    # tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'  # first TX, blk height 170
     # tx_hash = 'fe28050b93faea61fa88c4c630f0e1f0a1c24d0082dd0e10d369e13212128f33'  # block height 1,000
     # tx_hash = '6359f0868171b1d194cbee1af2f16ea598ae8fad666d9b012c8ed2b79a236ec4'  # block height 100,000
     # tx_hash = 'b5f6e3b217fa7f6d58081b5d2a9a6607eebd889ed2c470191b2a45e0dcb98eb0'  # block height 150,000
     # tx_hash = 'ee475443f1fbfff84ffba43ba092a70d291df233bd1428f3d09f7bd1a6054a1f'  # blk height 200,000, 388 TX's
     # tx_hash = 'bcb887acb2c01b6c5c8b92c22a368135d207f07a26eff170fe730b1cd40d2547'  # blk height 200,000, TX 440 inputs
+    tx_hash = input("Insert transaction ID or hash here: ")
     hex_str = get_block_data(tx_hash)
 
     # if api returned something other than OK

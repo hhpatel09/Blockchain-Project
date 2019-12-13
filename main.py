@@ -4,18 +4,16 @@ import hash_maker
 
 SATOSHI_TO_BTC = 0.00000001
 
-
-def main(tx_hash):
-    # first tx_hash = f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16
-    # first tx block hash = 00000000d1145790a8694403d4063f323d499e655c83426834d4ce2f8dd4a2ee
-    # genesis_block hash = 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
-
-    # get block height from transaction data
+# returns the raw block data from a given tx hash
+def get_block_data(tx_hash):
+    # get tx data
     uri_tx = "https://blockchain.info/rawtx/"
     response_tx = requests.get(uri_tx + tx_hash, params={'format': 'json'}, )
     if response_tx.status_code != 200:
         return -1
     res = response_tx.json()
+
+    # get block height from tx data
     url = 'https://blockchain.info/block-height/'
     block_height = str(res['block_height'])
     print("Block Height: %s" % block_height)
@@ -29,7 +27,6 @@ def main(tx_hash):
     # get block raw data from block hash
     url = 'https://blockchain.info/rawblock/' + block_hash
     response = requests.get(url, params={'format': 'hex'}, )
-    # response = requests.get(url)
     return response.text
 
 
@@ -181,7 +178,7 @@ def get_transaction_data(block, index):
 
 
 # loop through transactions, hash it, find the one that matches the given hash
-def find_transaction(block):
+def find_transaction(block, tx_hash):
     for j in range(hex_to_uint32(block["num_trans"])):
         trans_data_str = get_transaction_data(block, j)
         calculated_hash = hash_maker.hasher(trans_data_str)
@@ -227,15 +224,15 @@ def hex_to_uint32(string, endianness='little-endian'):
         return hex_to_uint32(hash_maker.revEndian(string), 'big-endian')
 
 
-if __name__ == "__main__":
+def main():
     # tx_hash = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'  # first TX, blk height 170
-    # tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'  # first TX, blk height 170
+    tx_hash = 'b1fea52486ce0c62bb442b530a3f0132b826c74e473d1f2c220bfa78111c5082'  # first TX, blk height 170
     # tx_hash = 'fe28050b93faea61fa88c4c630f0e1f0a1c24d0082dd0e10d369e13212128f33'  # block height 1,000
     # tx_hash = '6359f0868171b1d194cbee1af2f16ea598ae8fad666d9b012c8ed2b79a236ec4'  # block height 100,000
     # tx_hash = 'b5f6e3b217fa7f6d58081b5d2a9a6607eebd889ed2c470191b2a45e0dcb98eb0'  # block height 150,000
     # tx_hash = 'ee475443f1fbfff84ffba43ba092a70d291df233bd1428f3d09f7bd1a6054a1f'  # blk height 200,000, 388 TX's
-    tx_hash = 'bcb887acb2c01b6c5c8b92c22a368135d207f07a26eff170fe730b1cd40d2547'  # blk height 200,000, TX 440 inputs
-    hex_str = main(tx_hash)
+    # tx_hash = 'bcb887acb2c01b6c5c8b92c22a368135d207f07a26eff170fe730b1cd40d2547'  # blk height 200,000, TX 440 inputs
+    hex_str = get_block_data(tx_hash)
 
     # if api returned something other than OK
     if hex_str == -1:
@@ -243,7 +240,7 @@ if __name__ == "__main__":
         exit(0)
 
     block_data = parse_block(hex_str)
-    tx_index = find_transaction(block_data)
+    tx_index = find_transaction(block_data, tx_hash)
     if tx_index == -1:
         print("Couldn't find tx")
         exit(0)
@@ -251,3 +248,6 @@ if __name__ == "__main__":
     print("Found TX at index: %d" % tx_index)
     print_transaction_data(block_data, tx_index, tx_hash)
 
+
+if __name__ == "__main__":
+    main()

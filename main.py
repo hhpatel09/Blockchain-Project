@@ -168,6 +168,7 @@ def get_transaction_data(block, index):
         trans_data += block["txs"][index]["tx_inputs"][i]["sequence"]
 
     # get all outputs
+    trans_data += block["txs"][index]["output_identifier"]
     trans_data += block["txs"][index]["num_outputs"]
     for i in range(hex_to_uint32(block["txs"][index]["num_outputs"])):
         trans_data += block["txs"][index]["tx_outputs"][i]["value"]
